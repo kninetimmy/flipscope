@@ -1,0 +1,7 @@
+[package]
+name = "flipscope-proto"
+version = "0.1.0"
+edition = "2021"
+description = "FlipScope wire protocol types and (de)serialization"
+
+[dependencies]

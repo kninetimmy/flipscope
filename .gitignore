@@ -5,3 +5,4 @@ agent_docs/PROJECT_LEDGER.md
 .orchestrator/config.local.toml
 .orchestrator/state.json
 .orchestrator/delivery.lock
+host/target/
