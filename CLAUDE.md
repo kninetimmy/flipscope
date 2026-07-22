@@ -71,9 +71,21 @@ H1–H6 host build. Don't build the full device UI before D0 resolves.
 
 ## Build/test commands
 
-None yet. Device toolchain (ufbt vs. firmware-tree fbt) is chosen at D0;
-host is standard Cargo once the workspace exists at H0. Update this section
-when either lands. Automated-test expectations are listed in §32.2.
+- **Device (Stage 1):** toolchain is `ufbt` (see `device/TOOLCHAIN.md` for the
+  ufbt-vs-fbt rationale). Install with `pip install ufbt`; the first build
+  downloads and caches the official-firmware stable SDK. Build the FAP from
+  `device/flipscope/`:
+
+  ```
+  ufbt
+  ```
+
+  Produces `device/flipscope/dist/flipscope.fap`. No device automated tests
+  exist yet.
+- **Host (Stages 2–3):** standard Cargo once the workspace exists at H0 —
+  not yet scaffolded.
+
+Automated-test expectations are listed in §32.2.
 
 <!-- orchestrator:managed:start version=1 -->
 This file is partially managed by Orch (see `.orchestrator/config.toml`).
