@@ -71,9 +71,24 @@ H1–H6 host build. Don't build the full device UI before D0 resolves.
 
 ## Build/test commands
 
-None yet. Device toolchain (ufbt vs. firmware-tree fbt) is chosen at D0;
-host is standard Cargo once the workspace exists at H0. Update this section
-when either lands. Automated-test expectations are listed in §32.2.
+Device toolchain (ufbt vs. firmware-tree fbt) is chosen at D0 — none yet.
+
+Host (`host/`, Cargo workspace with the six §25 crates — `flipscope-proto`,
+`flipscope-format`, `flipscope-dsp`, `flipscope-link`, `flipscope-tui`,
+`flipscope-cli`; no inter-crate or external dependencies yet):
+
+```
+cd host
+cargo build --workspace
+cargo test --workspace
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+CI (`.github/workflows/ci.yml`) runs the same four commands; `ubuntu-latest`
+is required, `macos-latest`/`windows-latest` are best-effort
+(`continue-on-error: true`). Automated-test expectations are listed in
+§32.2.
 
 <!-- orchestrator:managed:start version=1 -->
 This file is partially managed by Orch (see `.orchestrator/config.toml`).
