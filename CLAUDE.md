@@ -82,8 +82,22 @@ H1–H6 host build. Don't build the full device UI before D0 resolves.
 
   Produces `device/flipscope/dist/flipscope.fap`. No device automated tests
   exist yet.
-- **Host (Stages 2–3):** standard Cargo once the workspace exists at H0 —
-  not yet scaffolded.
+- **Host (Stages 2–3):** Cargo workspace at `host/` with the six §25 crates —
+  `flipscope-proto`, `flipscope-format`, `flipscope-dsp`, `flipscope-link`,
+  `flipscope-tui`, `flipscope-cli`; no inter-crate or external dependencies
+  yet:
+
+  ```
+  cd host
+  cargo build --workspace
+  cargo test --workspace
+  cargo fmt --all --check
+  cargo clippy --workspace --all-targets -- -D warnings
+  ```
+
+  CI (`.github/workflows/ci.yml`) runs the same four commands; `ubuntu-latest`
+  is required, `macos-latest`/`windows-latest` are best-effort
+  (`continue-on-error: true`).
 
 Automated-test expectations are listed in §32.2.
 

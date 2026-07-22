@@ -1,0 +1,7 @@
+[package]
+name = "flipscope-tui"
+version = "0.1.0"
+edition = "2021"
+description = "FlipScope terminal remote head (ratatui front end)"
+
+[dependencies]

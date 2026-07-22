@@ -1,0 +1,7 @@
+[package]
+name = "flipscope-dsp"
+version = "0.1.0"
+edition = "2021"
+description = "FlipScope Stage 3 signal-processing engine: pure functions, no I/O, no threads"
+
+[dependencies]

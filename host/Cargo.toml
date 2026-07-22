@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+    "flipscope-proto",
+    "flipscope-format",
+    "flipscope-dsp",
+    "flipscope-link",
+    "flipscope-tui",
+    "flipscope-cli",
+]
