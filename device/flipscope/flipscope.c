@@ -240,11 +240,24 @@ static const int32_t flipscope_princeton_test_vector[] = {
 #define FLIPSCOPE_PRINCETON_VECTOR_LEN \
     (sizeof(flipscope_princeton_test_vector) / sizeof(flipscope_princeton_test_vector[0]))
 
-/* Ground truth, from captures/princeton.sub: Protocol=Princeton, Bit=24, Key=00 00 00 00 00 95 D5 D4. */
+/*
+ * Ground truth: the official firmware's own SubGhz decoder, running this
+ * exact embedded vector on real hardware (build 6631ff5), reported
+ * "Princeton 24bit Key:0x007C5703 Yek:0x00C0EA3E" on 2026-07-23 (Yek is the
+ * 24-bit bit-reversal of Key, and is internally consistent with it). That is
+ * the expectation encoded below.
+ *
+ * This is NOT captures/princeton.sub's Key (95 D5 D4) or TE (400). Those
+ * initially looked like the answer key because princeton.sub is
+ * princeton_raw.sub's Flipper-decoded sibling by naming convention, but that
+ * convention is misleading here: upstream, princeton.sub is an independent
+ * official-firmware encoder-test asset, not a decode of princeton_raw.sub.
+ * See captures/README.md section 4 for the full discovery writeup.
+ */
 #define FLIPSCOPE_EXPECTED_PROTOCOL_NAME "Princeton"
 #define FLIPSCOPE_EXPECTED_BIT_COUNT_TOKEN "24bit"
-#define FLIPSCOPE_EXPECTED_KEY_TOKEN_UPPER "95D5D4"
-#define FLIPSCOPE_EXPECTED_KEY_TOKEN_LOWER "95d5d4"
+#define FLIPSCOPE_EXPECTED_KEY_TOKEN_UPPER "7C5703"
+#define FLIPSCOPE_EXPECTED_KEY_TOKEN_LOWER "7c5703"
 
 typedef struct {
     bool decoded;

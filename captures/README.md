@@ -8,7 +8,10 @@ any device hardware work happens.
 
 Nine files, in three groups:
 
-- Four protocol pairs, each a `RAW` capture and its Flipper-decoded sibling:
+- Four protocol pairs, each a `RAW` capture and a same-protocol sibling
+  `.sub` file (see section 4 — the sibling is an independent
+  official-firmware test asset, not necessarily a decode of the raw
+  capture):
   - `came_raw.sub` / `came.sub` (CAME, fixed code)
   - `princeton_raw.sub` / `princeton.sub` (Princeton)
   - `nice_flo_raw.sub` / `nice_flo.sub` (Nice FLO)
@@ -68,16 +71,44 @@ Computed with PowerShell `Get-FileHash -Algorithm SHA256`.
 
 ## 4. Ground truth (for DSP validation)
 
-Each `*_raw.sub` file's decoded sibling (`.sub` without the `_raw` suffix)
-is the answer key for that capture, produced by the official Flipper Zero
-firmware's own decoder.
+**This section previously claimed that each `*_raw.sub` file's decoded
+sibling (`.sub` without the `_raw` suffix) is the answer key for that
+capture, produced by the official Flipper Zero firmware's own decoder. That
+claim was WRONG**, and here is how it was found: the D0.2 probe
+(`device/flipscope/flipscope.c`) fed `princeton_raw.sub`'s first three
+bursts, transcribed verbatim, into the official firmware's SubGhz decoder
+running on real hardware (build 6631ff5). The decode callback fired and the
+decoder reported `Princeton 24bit Key:0x007C5703 Yek:0x00C0EA3E` (Yek is the
+24-bit bit-reversal of Key — internally consistent) — not `princeton.sub`'s
+`Key: 00 00 00 00 00 95 D5 D4`. The sibling `.sub` files are independent
+official-firmware unit-test assets (encoder-test inputs used to exercise the
+firmware's SubGhz transmit-encode path), not decoder outputs for the raw
+captures, and the naming convention (`X_raw.sub` / `X.sub`) does not imply
+that pairing.
+
+The Princeton row below is now hardware-verified against
+`princeton_raw.sub` itself. Its Te is not asserted from any sibling file;
+it is derived from the capture: a one-off script parsed
+`princeton_raw.sub`'s first `RAW_Data` line, took the absolute value of
+every entry across the first three bursts (152 entries, through the third
+inter-burst guard gap, `-16394`) whose magnitude is < 1000 µs — i.e. the
+short pulses, excluding the long pulses and the guard gaps — and averaged
+them: 75 short-pulse entries, sum 41483 µs, mean ≈553 µs. `princeton.sub`'s
+`TE: 400` does **not** describe this capture.
+
+The CAME, Nice FLO, and MegaCode rows still cite their sibling files as
+before, but that citation is now marked **UNVERIFIED as an answer key for
+the raw capture** — the same pairing error that broke the Princeton row may
+also apply to these, and each needs its own independent re-derivation
+(on-device decode of the raw capture, or Stage 3 timing analysis) before
+being used as DSP validation ground truth.
 
 | Fixture | Protocol | Expected Te (µs) | Notes |
 |---|---|---|---|
-| `came_raw.sub` | CAME | ≈320 | Fixed code. Sibling `came.sub`: `Bit: 24`, `Key: 00 00 00 00 00 6A B2 34`. |
-| `princeton_raw.sub` | Princeton | 400 | Te is explicit in `princeton.sub` (`TE: 400`). |
-| `nice_flo_raw.sub` | Nice FLO | ≈700 | Documented standard Te for the protocol. |
-| `megacode_raw.sub` | MegaCode | ≈1000 | Capture has a leading segment of RF noise before the real signal starts, deliberately kept as a noise-vs-signal discrimination case for the Te estimator and envelope detector. |
+| `came_raw.sub` | CAME | ≈320 | UNVERIFIED. Fixed code. Sibling `came.sub`: `Bit: 24`, `Key: 00 00 00 00 00 6A B2 34` — not confirmed as a decode of `came_raw.sub`; re-derive before use as ground truth. |
+| `princeton_raw.sub` | Princeton | ≈553 (derived; see above) | Hardware-verified: on-device decode of this capture's first three bursts (build 6631ff5, 2026-07-23) reported `Key: 0x007C5703`, `24bit`. Te is the mean of the 75 short-pulse (< 1000 µs) entries across the first three bursts, not `princeton.sub`'s `TE: 400`, which does not describe this capture. |
+| `nice_flo_raw.sub` | Nice FLO | ≈700 | UNVERIFIED. Documented standard Te for the protocol; sibling `nice_flo.sub` not confirmed as a decode of `nice_flo_raw.sub`; re-derive before use as ground truth. |
+| `megacode_raw.sub` | MegaCode | ≈1000 | UNVERIFIED. Capture has a leading segment of RF noise before the real signal starts, deliberately kept as a noise-vs-signal discrimination case for the Te estimator and envelope detector; sibling `megacode.sub` not confirmed as a decode of `megacode_raw.sub`; re-derive before use as ground truth. |
 
 ## 5. Negative fixture
 
