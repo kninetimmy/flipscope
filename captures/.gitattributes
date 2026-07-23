@@ -1,0 +1,4 @@
+# Evidence fixtures (FR-029): preserve exact upstream bytes on every
+# platform. Without this, core.autocrlf can silently rewrite LF -> CRLF
+# on checkout, breaking the SHA-256 hashes recorded in README.md.
+*.sub -text
