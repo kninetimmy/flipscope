@@ -6,9 +6,9 @@ App(
     name="FlipScope",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="flipscope_app",
-    stack_size=1 * 1024,
+    stack_size=2 * 1024,
     fap_category="Tools",
     fap_version="0.1",
-    fap_description="FlipScope toolchain scaffold (hello world) - D0.1",
+    fap_description="FlipScope async-RX pulse recording probe - D0.3",
     fap_author="FlipScope",
 )
