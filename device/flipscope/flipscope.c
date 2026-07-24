@@ -108,7 +108,7 @@ typedef struct {
 typedef struct {
     const SubGhzDevice* device;
     bool devices_inited;
-    bool began;
+    bool acquired; /* get_by_name succeeded; gates sleep()/end() in stop() */
     bool frequency_valid;
     uint32_t real_frequency;
     bool rx_started; /* currently active; guards stop() against double-stop */
@@ -230,12 +230,29 @@ static bool flipscope_radio_start(FlipScopeRadio* radio, FlipScopeRingBuffer* ri
             SUBGHZ_DEVICE_CC1101_INT_NAME);
         return false;
     }
+    radio->acquired = true;
 
-    if(!subghz_devices_begin(radio->device)) {
-        FURI_LOG_E(TAG, "D0.3 probe: subghz_devices_begin failed");
-        return false;
-    }
-    radio->began = true;
+    /*
+     * subghz_devices_begin() is still called here for lifecycle symmetry
+     * with subghz_devices_end() below, but its return value must NOT gate
+     * setup for the internal CC1101. In official firmware 1.4.3 (this
+     * repo's exact SDK, API 87.1), cc1101_int's interconnect declares
+     * `.begin = NULL` (lib/subghz/devices/cc1101_int/cc1101_int_interconnect.c),
+     * and subghz_devices_begin() (lib/subghz/devices/devices.c) returns
+     * false whenever a device's begin hook is absent - false means "this
+     * device has no begin step", not "begin failed". The stock Sub-GHz app
+     * only inspects this return to detect an external radio module (which
+     * DOES have a begin hook); it is never a failure signal for the
+     * always-present internal radio. Confirmed on hardware (D0.3b run):
+     * three launches all logged this as false and RX never armed while the
+     * old code treated it as fatal, even though the RAM probe passed.
+     */
+    bool began_ok = subghz_devices_begin(radio->device);
+    FURI_LOG_I(
+        TAG,
+        "D0.3 probe: subghz_devices_begin returned %s (expected false for "
+        "cc1101_int - not fatal, see comment above)",
+        began_ok ? "true" : "false");
 
     subghz_devices_reset(radio->device);
     subghz_devices_idle(radio->device);
@@ -288,10 +305,10 @@ static void flipscope_radio_stop(FlipScopeRadio* radio) {
         radio->rx_started = false;
         FURI_LOG_I(TAG, "D0.3 probe: async RX stopped");
     }
-    if(radio->began) {
+    if(radio->acquired) {
         subghz_devices_sleep(radio->device);
         subghz_devices_end(radio->device);
-        radio->began = false;
+        radio->acquired = false;
         FURI_LOG_I(TAG, "D0.3 probe: radio released and put to sleep");
     }
     if(radio->devices_inited) {
